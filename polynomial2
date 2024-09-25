@@ -1,0 +1,59 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+typedef struct {
+    int base;
+    int value;
+} Root;
+
+// Function to convert a value from a given base to decimal
+int decode_value(int base, int value) {
+    int decimal_value = 0;
+    int power = 1;
+
+    while (value > 0) {
+        int last_digit = value % 10;
+        decimal_value += last_digit * power;
+        power *= base;
+        value /= 10;
+    }
+    return decimal_value;
+}
+
+// Function to calculate the polynomial value at x using Lagrange interpolation
+float lagrange_polynomial(int x, Root roots[], int n) {
+    float result = 0.0;
+
+    for (int i = 0; i < n; i++) {
+        float term = roots[i].value;
+
+        for (int j = 0; j < n; j++) {
+            if (j != i) {
+                term *= (float)(x - roots[j].base) / (roots[i].base - roots[j].base);
+            }
+        }
+        result += term;
+    }
+    return result;
+}
+
+int main() {
+    // Initialize the roots (this would normally be parsed from JSON)
+    Root roots[] = {
+        {1, decode_value(10, 4)},  // (1, 4)
+        {2, decode_value(2, 111)},  // (2, 7)
+        {3, decode_value(10, 12)},  // (3, 12)
+        {6, decode_value(4, 213)}   // (6, 39) - not used
+    };
+
+    int n = sizeof(roots) / sizeof(roots[0]); // Number of roots to use (3 for polynomial)
+    
+    // Calculate the constant term c = P(0)
+    float c = lagrange_polynomial(0, roots, n - 1); // Use first 3 roots for degree 2 polynomial
+
+    // Print the constant term
+    printf("The constant term c is: %.2f\n", c);
+    
+    return 0;
+}
